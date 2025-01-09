@@ -32,12 +32,16 @@ library(readxl)
 #' @return None. The function writes the output to a specified Excel file or appends it as a new sheet.
 #'
 #' @examples
-#' convert_species_genes("Zebrafish_SC_Cell_type_marker_database_122024_v7.xlsx", 
-#'                      "Immune population extende_mouse", 
+#' convert_species_genes("Zebrafish_Cell_type_markers_db.xlsx", 
+#'                      "Immune.cell.zebrafish", 
 #'                      "mmusculus", "hsapiens", 
-#'                      "Human.immune.Genes.Mapped.from.Immune.Mouse.xlsx", 
-#'                      TRUE, "Converted_Genes")
-#'                       
+#'                      "Human.immune.Genes.Mapped.from.Immune.zebrafish.xlsx", 
+#'                      FALSE)
+#'
+#' convert_species_genes("Zebrafish_Cell_type_markers_db.xlsx", 
+#'                      "Immune.cell.zebrafish", 
+#'                      "mmusculus", "hsapiens",
+#'                      TRUE, "Converted_Genes")                       
 #'                      
 convert_species_genes <- function(input.file, 
                                   sheet.name, 
