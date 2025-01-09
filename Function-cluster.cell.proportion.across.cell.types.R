@@ -1,0 +1,80 @@
+# Required Libraries 
+library(Seurat)
+library(dplyr)
+library(openxlsx)
+
+
+# Function
+
+#' Calculate cell counts and percentages and export to Excel
+#'
+#' This function processes a Seurat object to calculate:
+#' 1. Raw counts of cells in each cluster across different cell type annotations.
+#' 2. Percent distribution of counts within each cluster (row-wise percentages).
+#' 3. Percent distribution of counts across each cell type annotation (column-wise percentages).
+#' 4. Percent distribution of counts across the entire dataset.
+#'
+#' The results are exported to an Excel file, with each metric in a separate sheet.
+#'
+#' @param seurat_object A Seurat object containing the data to be analyzed.
+#' @param cluster.col A string specifying the column name in the metadata representing clusters (default: "seurat_clusters").
+#' @param celltype.col A string specifying the column name in the metadata representing cell type annotations (default: "cell_annotation").
+#' @param output.file A string specifying the name of the output Excel file (default: "calculate.cluster.stats.output.xlsx").
+#'
+#' @examples
+#' calculate.cluster.stats(
+#'   seurat_object = mouse_MuSC,
+#'   cluster.col = "seurat_clusters",
+#'   celltype.col = "cell_annotation",
+#'   output.file = "calculate.cluster.stats.output.xlsx"
+#' )
+#' 
+calculate.cluster.stats <- function(
+    seurat_object,
+    cluster.col = "seurat_clusters",
+    celltype.col = "cell_annotation",
+    output.file = "calculate.cluster.stats.output.xlsx") {
+  
+  # Extract metadata
+  metadata <- seurat_object@meta.data
+  
+  # Calculate raw counts
+  raw_counts <- metadata %>% 
+    group_by(!!sym(cluster.col), !!sym(celltype.col)) %>% 
+    summarise(count = n(), .groups = 'drop') %>% 
+    tidyr::pivot_wider(names_from = !!sym(celltype.col), 
+                       values_from = count, values_fill = 0) %>% 
+    as.data.frame()
+  
+  rownames(raw_counts) <- raw_counts[[cluster.col]]
+  raw_counts[[cluster.col]] <- NULL
+  
+  # Calculate cluster percentages (row-wise)
+  cluster_percent <- raw_counts %>% 
+    mutate(across(everything(), ~ . / rowSums(raw_counts) * 100))
+  
+  # Calculate cell type percentages (column-wise) using sweep
+  celltype_percent <- sweep(raw_counts, 2, colSums(raw_counts), FUN = "/") * 100
+  
+  # Calculate dataset-wide percentages
+  total_count <- sum(raw_counts)
+  dataset_percent <- raw_counts %>% 
+    mutate(across(everything(), ~ . / total_count * 100))
+  
+  # Write to Excel
+  wb <- createWorkbook()
+  addWorksheet(wb, "Counts")
+  writeData(wb, "Counts", raw_counts, rowNames = TRUE)
+  
+  addWorksheet(wb, "Cluster Percent")
+  writeData(wb, "Cluster Percent", cluster_percent, rowNames = TRUE)
+  
+  addWorksheet(wb, "Cell Type Percent")
+  writeData(wb, "Cell Type Percent", celltype_percent, rowNames = TRUE)
+  
+  addWorksheet(wb, "Dataset Percent")
+  writeData(wb, "Dataset Percent", dataset_percent, rowNames = TRUE)
+  
+  saveWorkbook(wb, output.file, overwrite = TRUE)
+  cat("Excel file saved to", output.file, "\n")
+}
