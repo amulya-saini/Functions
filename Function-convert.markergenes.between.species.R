@@ -57,7 +57,8 @@ convert_species_genes <- function(input.file,
   # Establish connections to Ensembl Biomart
   ensembl_from <- useEnsembl(biomart = "ensembl", 
                              dataset = paste0(species.from, "_gene_ensembl"), 
-                             version = 112)
+                             version = 112) # Update the version number based on recent ensembl archive
+                                            # https://useast.ensembl.org/info/website/archives/index.html
   
   ensembl_to <- useEnsembl(biomart = "ensembl", 
                            dataset = paste0(species.to, "_gene_ensembl"), 
