@@ -41,7 +41,7 @@ library(readxl)
 #' convert_species_genes("Zebrafish_Cell_type_markers_db.xlsx", 
 #'                      "Immune.cell.zebrafish", 
 #'                      "mmusculus", "hsapiens",
-#'                      TRUE, "Converted_Genes")                       
+#'                      new.file = TRUE, new.sheet.name = "Converted_Genes")                       
 #'                      
 convert_species_genes <- function(input.file, 
                                   sheet.name, 
@@ -93,17 +93,19 @@ convert_species_genes <- function(input.file,
   
   # Save the result
   if (new.file) {
-    
+    if (is.null(output.file)) {
+      stop("Please provide a valid output.file path when new.file = TRUE.")
+    }
     # Write to a new file
     write_xlsx(converted_data, output.file)
-    
   } else {
-    
     # Append as a new sheet to the input file
     existing_sheets <- excel_sheets(input.file)
     all_sheets <- lapply(existing_sheets, function(sheet) read_excel(input.file, sheet = sheet))
     names(all_sheets) <- existing_sheets
     all_sheets[[new.sheet.name]] <- converted_data
-    write_xlsx(all_sheets, output.file)
+    
+    # Overwrite the input file with the new sheet added
+    write_xlsx(all_sheets, input.file)
   }
 }
