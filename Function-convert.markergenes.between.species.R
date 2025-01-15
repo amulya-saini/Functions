@@ -60,10 +60,6 @@ convert_species_genes <- function(input.file,
                              version = 112) # Update the version number based on recent ensembl archive
                                             # https://useast.ensembl.org/info/website/archives/index.html
   
-  ensembl_to <- useEnsembl(biomart = "ensembl", 
-                           dataset = paste0(species.to, "_gene_ensembl"), 
-                           version = 112)
-  
   # Function to retrieve orthologues for the specified species
   get_orthologues <- function(genes) {
     
