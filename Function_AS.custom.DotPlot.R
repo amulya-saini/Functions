@@ -1,3 +1,9 @@
+library(cowplot)
+library(ggplot2)
+library(Seurat)
+library(tibble)
+library(tidyr)
+
 #' Custom Dot Plot for Single-Cell RNA-Seq Data
 #'
 #' A custom function to generate a dot plot for visualizing gene expression across different conditions,
