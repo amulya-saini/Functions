@@ -61,8 +61,8 @@ convert_species_genes <- function(input.file,
                                             # https://useast.ensembl.org/info/website/archives/index.html
   
   # Function to retrieve orthologues for the specified species
-get_orthologues <- function(genes) {
-  
+  get_orthologues <- function(genes) {
+    
     # Retrieve all orthologues, including one-to-many
     orthologues <- getBM(
       attributes = c("external_gene_name", 
@@ -91,10 +91,12 @@ get_orthologues <- function(genes) {
       gene_orthologues <- orthologues[orthologues$external_gene_name == gene, ]
       
       if (nrow(gene_orthologues) > 0) {
+        
         # If there are multiple orthologues, each orthologue will go in its own row
         all_converted_genes <- c(all_converted_genes, 
                                  gene_orthologues[[paste0(species.to, "_homolog_associated_gene_name")]])
       } else {
+        
         # If no orthologue, return NA
         all_converted_genes <- c(all_converted_genes, NA)
       }
