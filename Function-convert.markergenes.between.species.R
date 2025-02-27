@@ -101,7 +101,8 @@ get_orthologues <- function(genes) {
     }
     
     # Add the converted genes for the column to the list
-    converted_data_list[[col]] <- all_converted_genes
+    unique_genes <- unique(all_converted_genes)
+    converted_data_list[[col]] <- unique_genes
   }
   
   # Find the maximum length of the converted gene columns
