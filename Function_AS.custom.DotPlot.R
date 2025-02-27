@@ -120,17 +120,21 @@ AS.custom.DotPlot <- function(
                             names_to = "condition", 
                             values_to = "avg.exp")
   
-  data.long <- pivot_longer(data.long, 
-                            cols = starts_with("pct.exp."), 
-                            names_to = "pct_condition", 
-                            values_to = "pct.exp")
+  # Fix pct.exp - Make sure to correctly align pct.exp for each condition
+  pct.long <- pivot_longer(data.wide, 
+                           cols = starts_with("pct.exp."), 
+                           names_to = "pct_condition", 
+                           values_to = "pct.exp")
   
   # Clean column names
   data.long$condition <- gsub("avg.exp.", "", data.long$condition)
-  data.long$pct_condition <- gsub("pct.exp.", "", data.long$pct_condition)
+  pct.long$pct_condition <- gsub("pct.exp.", "", pct.long$pct_condition)
   
   # Ensure pct.exp values are correctly scaled
-  data.long$pct.exp <- pmax(data.long$pct.exp, dot.min) * 100 
+  pct.long$pct.exp <- pmax(pct.long$pct.exp, dot.min) * 100 
+  
+  # Merge avg.exp and pct.exp data
+  data.long <- merge(data.long, pct.long, by.x = c("features.plot", "id", "condition"), by.y = c("features.plot", "id", "pct_condition"), all = TRUE)
   
   # Set condition (split.column values) as a factor and order based on levels from the metadata
   split.levels <- factor(split.values, levels = levels(split.values))
