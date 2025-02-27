@@ -3,7 +3,7 @@ library(biomaRt)
 library(writexl)
 library(readxl)
 
-#' Convert Gene Names Between Species Using Ensembl Biomart
+#' Convert Gene Names Between Species Using Ensembl Biomart (The code also accounts for one to many orthologues instances)
 #'
 #' This function reads a gene dataset from an Excel file, 
 #' retrieves orthologous gene names for a target species using Ensembl Biomart, 
@@ -61,31 +61,60 @@ convert_species_genes <- function(input.file,
                                             # https://useast.ensembl.org/info/website/archives/index.html
   
   # Function to retrieve orthologues for the specified species
-  get_orthologues <- function(genes) {
-    
+get_orthologues <- function(genes) {
+  
+    # Retrieve all orthologues, including one-to-many
     orthologues <- getBM(
       attributes = c("external_gene_name", 
                      paste0(species.to, "_homolog_associated_gene_name")),
       filters = "external_gene_name",
       values = genes,
       mart = ensembl_from,
-      uniqueRows = TRUE)
-    
+      uniqueRows = FALSE  # Allow multiple orthologues
+    )
     return(orthologues)
   }
   
+  # List to store the converted columns
+  converted_data_list <- list()  
+  
   # Process each column in the data
-  converted_data <- data
   for (col in colnames(data)) {
-    original_genes <- na.omit(data[[col]]) # Remove NA values
+    original_genes <- na.omit(data[[col]])  # Remove NA values
     orthologues <- get_orthologues(original_genes)
-    converted_genes <- orthologues[[paste0(species.to, "_homolog_associated_gene_name")]]
     
-    # Replace original genes with corresponding converted genes
-    converted_data[[col]] <- ifelse(
-      data[[col]] %in% orthologues$external_gene_name,
-      orthologues[[paste0(species.to, "_homolog_associated_gene_name")]][match(data[[col]], orthologues$external_gene_name)],NA)
+    # Initialize an empty vector to store the converted genes for this column
+    all_converted_genes <- c()
+    
+    # For each original gene, check if there are multiple orthologues
+    for (gene in original_genes) {
+      gene_orthologues <- orthologues[orthologues$external_gene_name == gene, ]
+      
+      if (nrow(gene_orthologues) > 0) {
+        # If there are multiple orthologues, each orthologue will go in its own row
+        all_converted_genes <- c(all_converted_genes, 
+                                 gene_orthologues[[paste0(species.to, "_homolog_associated_gene_name")]])
+      } else {
+        # If no orthologue, return NA
+        all_converted_genes <- c(all_converted_genes, NA)
+      }
+    }
+    
+    # Add the converted genes for the column to the list
+    converted_data_list[[col]] <- all_converted_genes
   }
+  
+  # Find the maximum length of the converted gene columns
+  max_length <- max(sapply(converted_data_list, length))
+  
+  # Fill shorter columns with NA to match the maximum length
+  converted_data_list <- lapply(converted_data_list, function(col) {
+    length(col) <- max_length
+    return(col)
+  })
+  
+  # Convert the list of vectors to a data frame
+  converted_data <- data.frame(converted_data_list, stringsAsFactors = FALSE)
   
   # Save the result
   if (new.file) {
