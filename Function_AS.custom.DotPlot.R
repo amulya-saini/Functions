@@ -85,7 +85,7 @@ AS.custom.DotPlot <- function(
   
   # Create a combined identifier for each cell
   data.features$split <- split.values
-  data.features$id <- paste(data.features$id, data.features$split, sep = "-")
+  data.features$id <- paste(data.features$id, data.features$split, sep = "--")
   
   # Compute avg.exp and pct.exp
   data.plot <- lapply(unique(data.features$id), function(ident) {
@@ -105,17 +105,26 @@ AS.custom.DotPlot <- function(
   }))
   
   # Extract split categories for restructuring
-  data.plot$split <- sub(".*-", "", data.plot$id)
+  data.plot$split <- sub(".*--", "", data.plot$id)
   data.plot$id <- sub("-.*", "", data.plot$id)
   
   # Reshape to wide format
   data.wide <- reshape(data.plot, idvar = c("features.plot", "id"), timevar = "split", direction = "wide")
+  data.wide[is.na(data.wide)] <- 0
   
   # Scale the data
   if (scale) {
     for (split in unique(split.values)) {
-      data.wide[[paste0("avg.exp.", split)]] <- scale(log1p(data.wide[[paste0("avg.exp.", split)]]))
-      data.wide[[paste0("avg.exp.", split)]] <- MinMax(data.wide[[paste0("avg.exp.", split)]], min = col.min, max = col.max)
+      # Ensure column names are properly constructed
+      avg_exp_col <- paste0("avg.exp.", split)
+      
+      # Check if the column exists to prevent errors
+      if (avg_exp_col %in% colnames(data.wide)) {
+        data.wide[[avg_exp_col]] <- scale(log1p(data.wide[[avg_exp_col]]))
+        data.wide[[avg_exp_col]] <- MinMax(data.wide[[avg_exp_col]], min = col.min, max = col.max)
+      } else {
+        warning(paste("Column", avg_exp_col, "does not exist in data.wide"))
+      }
     }
   }
   data.wide[is.na(data.wide)] <- 0
