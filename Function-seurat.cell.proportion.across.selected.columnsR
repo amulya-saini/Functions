@@ -62,11 +62,11 @@ calculate.cell.proportion.stats <- function(seurat_object,
   addWorksheet(wb, "Raw Counts")
   writeData(wb, "Raw Counts", raw_counts, rowNames = TRUE)
   
-  addWorksheet(wb, "Group Percent")
-  writeData(wb, "Group Percent", group_percent, rowNames = TRUE)
+  addWorksheet(wb, "Row Percent")
+  writeData(wb, "Row Percent", group_percent, rowNames = TRUE)
   
-  addWorksheet(wb, "Category Percent")
-  writeData(wb, "Category Percent", category_percent, rowNames = TRUE)
+  addWorksheet(wb, "Column Percent")
+  writeData(wb, "Column Percent", category_percent, rowNames = TRUE)
   
   addWorksheet(wb, "Dataset Percent")
   writeData(wb, "Dataset Percent", dataset_percent, rowNames = TRUE)
