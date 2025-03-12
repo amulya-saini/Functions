@@ -39,11 +39,7 @@ library(tidyr)
 #'               split.column = "condition", 
 #'               cols = c("lightgrey", "blue"))
 #'
-#' @import ggplot2
-#' @importFrom Seurat DefaultAssay FetchData Idents
-#' @importFrom tidyr pivot_longer
-#' @import cowplot
-#'
+
 AS.custom.DotPlot <- function(
     object,
     features,
